@@ -28,8 +28,9 @@ void stackWalker::OnCallstackEntry(CallstackEntryType eType, CallstackEntry& ent
 {
 	HMODULE game_hmod = GetModuleHandleA(nullptr);
 
-	const char* module_type = entry.moduleName == "GTA5" ? "exe" : "dll";
-	u64 base_offset = entry.moduleName == "GTA5" ? reinterpret_cast<u64>(game_hmod) : 0;
+	const bool is_game_module = std::strcmp(entry.moduleName, "GTA5") == 0;
+	const char* module_type = is_game_module ? "exe" : "dll";
+	u64 base_offset = is_game_module ? reinterpret_cast<u64>(game_hmod) : 0;
 	u64 adjusted_offset = entry.offset - base_offset;
 
 	std::string moduleNameStr = entry.moduleName;

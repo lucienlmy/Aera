@@ -143,11 +143,11 @@ namespace ui
 		inline ImVec2 g_resolution{};
 		extern void init();
 		extern void tick();
-		extern const ImVec2& convert_coord_types(const ImVec2& pos, bool is_dc = false);
-		extern const ImVec2& get_text_size(i32 font_id, float size, const std::string& text, float wrap = -1.f);
+		extern ImVec2 convert_coord_types(const ImVec2& pos, bool is_dc = false);
+		extern ImVec2 get_text_size(i32 font_id, float size, const std::string& text, float wrap = -1.f);
 		extern i32 get_line_count(const std::string& text, i32 font_id, float size, float wrap);
 		extern float get_text_height(i32 font_id, float size, float wrap = -1.f);
-		extern const ImVec2& get_sprite_scale(float size);
+		extern ImVec2 get_sprite_scale(float size);
 		extern rage::grcTexture* get_game_texture(const sprite& sprite);
 		extern Font get_font(i32 id);
 		extern void rectangle(const ImVec2& pos, const ImVec2& size, color color, bool background = false,

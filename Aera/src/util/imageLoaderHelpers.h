@@ -44,11 +44,11 @@ namespace image_loader
     void header_handler();
 
     inline const std::unordered_set<std::string_view> supported_image_formats = {
-        ".png", ".jpeg", ".bmp", ".psd", ".tga", ".gif", ".hdr", ".pic", ".ppm", ".pgm"
+        ".png", ".jpg", ".jpeg", ".bmp", ".psd", ".tga", ".gif", ".hdr", ".pic", ".ppm", ".pgm"
     };
 
     inline bool contain_pict_ext(const fs::path& path)
     {
-        return supported_image_formats.contains(path.extension().string());
+        return supported_image_formats.contains(string_to_lower(path.extension().string()));
     }
 }

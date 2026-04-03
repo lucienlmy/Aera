@@ -7,12 +7,12 @@ namespace pointers
 	void scan_all()
 	{
 		g_runGtaThread = scan("RGT", "45 33 F6 8B E9 85 C9 B8").sub(0x1F).as<decltype(g_runGtaThread)>();
-		g_loadingScreenState = scan("LSS", "83 3D ? ? ? ? ? 75 ? 8B 43").lea().add(1).as<decltype(g_loadingScreenState)>();
+		g_loadingScreenState = scan("LSS", "81 39 5D 6D FF AF 75 20").add(10).rip().add(1).as<decltype(g_loadingScreenState)>();
 		g_scrThreadInit = scan("STI", "83 89 40 01 00 00 FF 83").as<decltype(g_scrThreadInit)>();
 		g_scrThreadTick = scan("STT", "80 B9 4E 01 00 00 00").sub(0xF).as<decltype(g_scrThreadTick)>();
 		g_scrThreadKill = scan("STK", "48 89 5C 24 08 57 48 83 EC 20 48 83 B9 18 01").as<decltype(g_scrThreadKill)>();
 		g_frame_count = scan("FC", "8B 15 ? ? ? ? 41 FF CF").lea().as<decltype(g_frame_count)>();
-		g_handleToPointer = scan("HTP", "83 F9 FF 74 31 4C").as<decltype(g_handleToPointer)>();
+		g_handleToPointer = scan("HTP", "83 F9 FF 74 37 8B D1").as<decltype(g_handleToPointer)>();
 		g_pointerToHandle = scan("PTH", "48 8D 1C F8 48 8B CB").add(7).call().as<decltype(g_pointerToHandle)>();
 		g_readBitbufArray = scan("RBA", "48 89 5C 24 08 57 48 83 EC 30 41 8B F8 4C").as<decltype(g_readBitbufArray)>();
 		g_writeBitbufArray = scan("WBA", "48 89 5C 24 08 57 48 83 EC 30 F6 41 1C").as<decltype(g_writeBitbufArray)>();

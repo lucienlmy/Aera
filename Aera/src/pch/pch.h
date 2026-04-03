@@ -1,5 +1,5 @@
 #pragma once
-#define CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")
@@ -8,6 +8,8 @@
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "wldap32.lib")
 #pragma comment(lib, "crypt32.lib")
+
+#include <numbers>
 
 #include "framework.h"
 #include "rage/enums.h"
@@ -20,7 +22,7 @@
 #define COUNT(a) ((sizeof(a)/sizeof(0[a])) / ((size_t)(!(sizeof(a) % sizeof(0[a])))))
 #define ONCE_PER_FRAME(a) do a while (false)
 #define ONCE(v, a) static bool v{ ([&] { a }(), true) };
-constexpr long double pi{3.141592653589793238462643383279502884L};
+constexpr long double pi{std::numbers::pi_v<long double>};
 
 template <typename T>
 using comPtr = Microsoft::WRL::ComPtr<T>;
@@ -55,6 +57,48 @@ public:
 
 namespace defines
 {
+	inline std::optional<std::string> get_environment_variable(const char* name)
+	{
+		char* value{};
+		size_t value_length{};
+		if (_dupenv_s(&value, &value_length, name) != 0 || !value)
+		{
+			return std::nullopt;
+		}
+
+		std::string result{value};
+		std::free(value);
+		return result;
+	}
+
+	inline std::optional<std::filesystem::path> get_environment_path(const char* name)
+	{
+		if (const auto value = get_environment_variable(name))
+		{
+			return std::filesystem::path(*value);
+		}
+
+		return std::nullopt;
+	}
+
+	inline std::filesystem::path get_storage_root()
+	{
+		if (const auto appdata = get_environment_path("APPDATA"))
+		{
+			return *appdata;
+		}
+
+		std::error_code error{};
+		const auto temp = std::filesystem::temp_directory_path(error);
+		if (!error)
+		{
+			return temp;
+		}
+
+		const auto current = std::filesystem::current_path(error);
+		return error ? std::filesystem::path{} : current;
+	}
+
 	inline bool g_running{true};
 	inline HMODULE g_module{};
 	inline HANDLE g_thread{};
@@ -62,29 +106,35 @@ namespace defines
 
 	inline bool is_number(const std::string& str)
 	{
-		return std::ranges::all_of(str, [](const char c) { return std::isdigit(c); });
+		return !str.empty() && std::ranges::all_of(str, [](const unsigned char c) { return std::isdigit(c) != 0; });
 	}
 
 	inline bool contains_an_number(const std::string& str)
 	{
-		return std::ranges::any_of(str, [](const char c) { return std::isdigit(c); });
+		return std::ranges::any_of(str, [](const unsigned char c) { return std::isdigit(c) != 0; });
 	}
 
 	inline std::string string_to_lower(const std::string& str)
 	{
 		std::string result{str};
-		std::ranges::transform(result, result.data(), [](const char c) { return tolower(c); });
+		std::ranges::transform(result, result.begin(), [](const unsigned char c)
+		{
+			return static_cast<char>(std::tolower(c));
+		});
 		return result;
 	}
 
 	inline std::string string_to_upper(const std::string& str)
 	{
 		std::string result{str};
-		std::ranges::transform(result, result.data(), [](const char c) { return toupper(c); });
+		std::ranges::transform(result, result.begin(), [](const unsigned char c)
+		{
+			return static_cast<char>(std::toupper(c));
+		});
 		return result;
 	}
 
-	inline std::vector<std::string> get_matches(std::string str, const std::string& ex)
+	inline std::vector<std::string> get_matches(const std::string& str, const std::string& ex)
 	{
 		std::vector<std::string> matches{};
 		const std::regex expression{ex};
@@ -101,10 +151,10 @@ namespace defines
 	inline std::vector<u64> find_all_occurrences(const std::string& str, const std::string& substr)
 	{
 		std::vector<u64> indexes{};
-		u64 index{};
+		std::string::size_type index{};
 		while ((index = str.find(substr, index)) != std::string::npos)
 		{
-			indexes.push_back(index);
+			indexes.push_back(static_cast<u64>(index));
 			index += substr.length();
 		}
 		return indexes;
@@ -125,7 +175,7 @@ namespace defines
 	template <typename T>
 	float to_fixed(T number, int amount)
 	{
-		float multiplier = std::pow(10.0f, static_cast<float>(amount));
+		const float multiplier = std::pow(10.0f, static_cast<float>(amount));
 		return std::round(number * multiplier) / multiplier;
 	}
 
@@ -155,7 +205,7 @@ namespace defines
 	}
 
 	// Function to check if a vector contains a string
-	inline bool contains_string(std::vector<std::string> vec, const std::string& str)
+	inline bool contains_string(const std::vector<std::string>& vec, const std::string& str)
 	{
 		return std::ranges::find(vec, str) != vec.end();
 	}
@@ -165,7 +215,7 @@ namespace defines
 	{
 		try
 		{
-			int integer_value = std::stoi(str); // Attempt to convert the string to an integer
+			std::stoi(str);
 			return true;
 		}
 		catch (const std::invalid_argument&)
@@ -183,7 +233,7 @@ namespace defines
 	{
 		try
 		{
-			float float_value = std::stof(str); // Attempt to convert the string to a float
+			std::stof(str);
 			return true;
 		}
 		catch (const std::invalid_argument&)
@@ -202,7 +252,7 @@ namespace defines
 
 	inline bool contains_a_character(const std::string& str)
 	{
-		return std::ranges::any_of(str, [](const char c) { return std::isalpha(c); });
+		return std::ranges::any_of(str, [](const unsigned char c) { return std::isalpha(c) != 0; });
 	}
 }
 

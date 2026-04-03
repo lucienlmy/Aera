@@ -397,10 +397,7 @@ namespace util
 	{
 		inline fs::path getPath(const fs::path& nonRelative)
 		{
-			fs::path relative{std::getenv("appdata")};
-			relative /= BRAND;
-			relative /= nonRelative;
-			return relative;
+			return get_storage_root() / BRAND / nonRelative;
 		}
 
 		inline void destory(std::ofstream& file)
@@ -428,7 +425,7 @@ namespace util
 			{
 				stream << std::endl;
 			}
-			return std::move(stream);
+			return stream;
 		}
 
 		inline std::string read(std::ifstream& file)

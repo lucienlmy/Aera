@@ -4,7 +4,7 @@
 #define LOG(t, s, ...) g_logger.get()->send(eLogType::t, s, __VA_ARGS__);
 #ifdef DEBUG
 #define LOG_DEBUG(s, ...) LOG(Debug, s, __VA_ARGS__);
-#elif
+#else
 #define LOG_DEBUG(s, ...) ;
 #endif
 
@@ -145,7 +145,17 @@ public:
 	}
 
 private:
-	fs::path m_path{std::getenv("appdata")};
+	static fs::path get_log_directory_root()
+	{
+		if (const auto appdata = get_environment_path("APPDATA"))
+		{
+			return *appdata;
+		}
+
+		return get_storage_root();
+	}
+
+	fs::path m_path{get_log_directory_root()};
 	std::ofstream m_con{};
 	std::ofstream m_file{};
 };

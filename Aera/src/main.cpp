@@ -19,7 +19,7 @@ std::mutex exit_mutex;
 
 void thread_function()
 {
-	std::lock_guard lock(exit_mutex);
+	std::scoped_lock lock(exit_mutex);
 	std::exit(0);
 }
 

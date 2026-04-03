@@ -54,7 +54,7 @@ namespace ui
 			}
 		}
 
-		const ImVec2& convert_coord_types(const ImVec2& pos, bool is_dc)
+		ImVec2 convert_coord_types(const ImVec2& pos, bool is_dc)
 		{
 			//DC is display coords. We use a 0.00 to 1.00 scale which is called NDC (or Non-Display Coords). 
 			// This is because NDC scales across all monitors. However, ImGui uses DC. This is a helper function to swap back and forth between the two.
@@ -65,7 +65,7 @@ namespace ui
 			return pos * g_resolution;
 		}
 
-		const ImVec2& get_text_size(i32 font_id, float size, const std::string& text, float wrap)
+		ImVec2 get_text_size(i32 font_id, float size, const std::string& text, float wrap)
 		{
 			//Wrap will always have a value, it is stored as NDC.
 			auto font{get_font(font_id)};
@@ -90,9 +90,9 @@ namespace ui
 			return text_size.y;
 		}
 
-		const ImVec2& get_sprite_scale(float size)
+		ImVec2 get_sprite_scale(float size)
 		{
-			return {(g_resolution.y / g_resolution.x) * size, size};
+			return {g_resolution.y / g_resolution.x * size, size};
 		}
 
 		rage::grcTexture* get_game_texture(const sprite& sprite)
@@ -119,9 +119,9 @@ namespace ui
 		               ImDrawFlags flags)
 		{
 			auto draw_list{background ? g_background_drawlist : g_foreground_drawlist};
-			const auto& scaled_pos{convert_coord_types(pos)};
-			const auto& scaled_size{convert_coord_types(size)};
-			const auto& final_pos{scaled_pos - (scaled_size / 2.f)};
+			const auto scaled_pos{convert_coord_types(pos)};
+			const auto scaled_size{convert_coord_types(size)};
+			const auto final_pos{scaled_pos - (scaled_size / 2.f)};
 			//For some reason, DirectX/ImGui has a very weird way of doing rectangles. It uses two triangles and a four-point corner system.
 			draw_list->AddRectFilled(final_pos, final_pos + scaled_size, color.pack(), rounding, flags);
 		}
@@ -142,14 +142,14 @@ namespace ui
 				break;
 			case eJustify::Right:
 				{
-					const auto& text_size{get_text_size(font_id, size, text, wrap)};
+					const auto text_size{get_text_size(font_id, size, text, wrap)};
 					pos.x = pos.x + (wrap / padding);
 					pos.x -= text_size.x;
 				}
 				break;
 			case eJustify::Center:
 				{
-					const auto& text_size{get_text_size(font_id, size, text, wrap)};
+					const auto text_size{get_text_size(font_id, size, text, wrap)};
 					pos.x -= text_size.x / 2.f;
 				}
 				break;
@@ -175,8 +175,8 @@ namespace ui
 
 		void image(ShaderResource resource, const ImVec2& pos, const ImVec2& size, const color& color, float rotation)
 		{
-			auto& scaled_pos{convert_coord_types(pos)};
-			auto& scaled_size{convert_coord_types(size)};
+			const auto scaled_pos{convert_coord_types(pos)};
+			const auto scaled_size{convert_coord_types(size)};
 			auto final_pos{scaled_pos - scaled_size / 2.f};
 			rotated_image(resource, final_pos, {final_pos + scaled_size}, color, rotation);
 		}
@@ -187,7 +187,7 @@ namespace ui
 			{
 				//Bit cursed because it's stored as a vector2, but it is what it is
 				auto [x, y]{texture->Size()};
-				const ImVec2& ndc_texture_size{convert_coord_types({x, y}, true)};
+				const auto ndc_texture_size{convert_coord_types({x, y}, true)};
 				image(texture->m_shader, pos, ndc_texture_size * size, color, sprite.m_rotation);
 			}
 		}

@@ -19,7 +19,7 @@ namespace image_loader
     img load_img_from_mem(const img_data& data)
     {
         int width{}, height{};
-        unsigned char* raw = stbi_load_from_memory(data.img_bytes.get(), data.img_len, &width, &height, nullptr, 0);
+        unsigned char* raw = stbi_load_from_memory(data.img_bytes.get(), data.img_len, &width, &height, nullptr, 4);
         if (!raw) return {};
         return {.data = {raw, stbi_image_free}, .size = {.x = width, .y = height} };
     }
@@ -30,25 +30,37 @@ namespace image_loader
         if (!file) return {};
 
         file.seekg(0, std::ios::end);
-        auto size = file.tellg();
+        const auto raw_size = file.tellg();
         file.seekg(0, std::ios::beg);
 
-        std::vector<char> buffer(size);
+        if (raw_size <= 0 || raw_size > std::numeric_limits<int>::max()) return {};
+
+        const auto size = static_cast<std::streamsize>(raw_size);
+        std::vector<char> buffer(static_cast<size_t>(size));
         if (!file.read(buffer.data(), size)) return {};
 
         int* delays = nullptr;
         int width{}, height{}, frame_count{}, comp{};
-        stbi_uc* data = stbi_load_gif_from_memory(reinterpret_cast<stbi_uc*>(buffer.data()), size, &delays, &width, &height, &frame_count, &comp, 0);
+        stbi_uc* data = stbi_load_gif_from_memory(
+            reinterpret_cast<stbi_uc*>(buffer.data()), static_cast<int>(size), &delays, &width, &height,
+            &frame_count, &comp, 0);
 
         if (!data) return {};
+        if (width <= 0 || height <= 0 || frame_count <= 0 || comp <= 0)
+        {
+            stbi_image_free(data);
+            STBIW_FREE(delays);
+            return {};
+        }
 
         std::vector<img_data> frames;
         frames.reserve(frame_count);
 
-        size_t bytes_per_frame = static_cast<size_t>(width) * comp * height;
+        const size_t bytes_per_frame = static_cast<size_t>(width) * static_cast<size_t>(comp) * static_cast<size_t>(height);
         for (int i = 0; i < frame_count; i++)
         {
-            frames.push_back(write_png_to_mem(width, height, comp, data + bytes_per_frame * i, 0, delays[i]));
+            const int frame_delay = delays ? delays[i] : 0;
+            frames.push_back(write_png_to_mem(width, height, comp, data + bytes_per_frame * i, 0, frame_delay));
         }
         stbi_image_free(data);
         STBIW_FREE(delays);
@@ -75,14 +87,17 @@ namespace image_loader
         for (auto& data : gif_data)
         {
             auto img = load_img_from_mem(data);
-            frames.push_back({.frame_delay = data.frame_delay, .res_view = create_resource_view(img.data.get(), img.size)});
+            if (const auto resource_view = create_resource_view(img.data.get(), img.size))
+            {
+                frames.push_back({.frame_delay = data.frame_delay, .res_view = resource_view});
+            }
         }
         return frames;
     }
 
     ComPtr<ID3D11ShaderResourceView> create_resource_view(unsigned char* img_data, vec2 img_size)
     {
-        if (!img_data) return nullptr;
+        if (!img_data || img_size.x <= 0 || img_size.y <= 0) return nullptr;
 
         D3D11_TEXTURE2D_DESC desc{};
         desc.Width = img_size.x;

@@ -29,7 +29,7 @@ namespace commands
 						p = player;
 						break;
 					}
-					if (player.m_name.find(name) != -1)
+					if (player.m_name.find(name) != std::string::npos)
 					{
 						LOG(Commands, "The name '{}' isn't unique enough! Please try again", name);
 						break;

@@ -1354,7 +1354,8 @@ void StackWalker::OnLoadModule(LPCSTR img,
 #endif
 	if (fileVersion == 0)
 		_snprintf_s(buffer, maxLen, "%s:%s (%p), size: %d (result: %d), SymType: '%s', PDB: '%s'\n",
-		            img, mod, baseAddr, size, result, symType, pdbName);
+		            img, mod, reinterpret_cast<void*>(static_cast<uintptr_t>(baseAddr)), size, result, symType,
+		            pdbName);
 	else
 	{
 		DWORD v4 = static_cast<DWORD>(fileVersion & 0xFFFF);
@@ -1364,7 +1365,8 @@ void StackWalker::OnLoadModule(LPCSTR img,
 		_snprintf_s(
 			buffer, maxLen,
 			"%s:%s (%p), size: %d (result: %d), SymType: '%s', PDB: '%s', fileVersion: %d.%d.%d.%d\n",
-			img, mod, baseAddr, size, result, symType, pdbName, v1, v2, v3, v4);
+			img, mod, reinterpret_cast<void*>(static_cast<uintptr_t>(baseAddr)), size, result, symType, pdbName,
+			v1, v2, v3, v4);
 	}
 	buffer[STACKWALK_MAX_NAMELEN - 1] = 0; // be sure it is NULL terminated
 	OnOutput(buffer);
@@ -1390,7 +1392,8 @@ void StackWalker::OnCallstackEntry(CallstackEntryType eType, CallstackEntry& ent
 			MyStrCpy(entry.lineFileName, STACKWALK_MAX_NAMELEN, "(filename not available)");
 			if (entry.moduleName[0] == 0)
 				MyStrCpy(entry.moduleName, STACKWALK_MAX_NAMELEN, "(module-name not available)");
-			_snprintf_s(buffer, maxLen, "%p (%s): %s: %s\n", entry.offset, entry.moduleName,
+			_snprintf_s(buffer, maxLen, "%p (%s): %s: %s\n",
+			            reinterpret_cast<void*>(static_cast<uintptr_t>(entry.offset)), entry.moduleName,
 			            entry.lineFileName, entry.name);
 		}
 		else
@@ -1409,7 +1412,7 @@ void StackWalker::OnDbgHelpErr(LPCSTR szFuncName, DWORD gle, DWORD64 addr)
 	maxLen = _TRUNCATE;
 #endif
 	_snprintf_s(buffer, maxLen, "ERROR: %s, GetLastError: %d (Address: %p)\n", szFuncName, gle,
-	            addr);
+	            reinterpret_cast<void*>(static_cast<uintptr_t>(addr)));
 	buffer[STACKWALK_MAX_NAMELEN - 1] = 0;
 	OnOutput(buffer);
 }

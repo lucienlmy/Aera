@@ -1,7 +1,9 @@
 #pragma once
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
+#ifndef _HAS_STD_BYTE
 #define _HAS_STD_BYTE 0
+#endif
 //Windows Includes (SDKs)
 #include <winsdkver.h>
 #include <sdkddkver.h>
@@ -13,6 +15,7 @@
 #include <tlhelp32.h>
 #include <cassert>
 #include <cinttypes>
+#include <cctype>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
@@ -22,9 +25,12 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cmath>
+#include <condition_variable>
 #include <deque>
 #include <filesystem>
 #include <fstream>
+#include <format>
 #include <functional>
 #include <iomanip>
 #include <iostream>
@@ -32,6 +38,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <ranges>
 #include <sstream>
 #include <stack>
 #include <string>
@@ -43,7 +50,6 @@
 #include <array>
 #include <wrl/client.h>
 #include <random>
-#include <filesystem>
 #include <timeapi.h>
 #include <stdio.h>
 #include <fcntl.h>

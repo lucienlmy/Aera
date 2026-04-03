@@ -39,8 +39,8 @@ namespace ui::submenus
 				image_loader::m_header_frame = 0;
 			}
 		}));
-		if (fs::path header_path{std::getenv("appdata")}; exists(header_path.append(BRAND).append("Headers")) && !
-			header_path.empty())
+		const fs::path header_path{get_storage_root() / BRAND / "Headers"};
+		if (exists(header_path))
 		{
 			//submenu.add(breakOption("Custom Headers"));
 			for (const auto& dir_entry : fs::directory_iterator(header_path))
@@ -64,16 +64,20 @@ namespace ui::submenus
 								image_loader::m_header_frame = 0;
 								g_header.m_text = std::format("Loading: {}", path.filename().string());
 
-								if (path.extension() == ".gif")
+								if (string_to_lower(path.extension().string()) == ".gif")
 								{
 									image_loader::m_header = image_loader::create_gif_texture(path);
 								}
 								else
 								{
-									image_loader::m_header.emplace_back(image_loader::frame_data{.frame_delay = 0, .res_view = image_loader::create_texture(path)});
+									if (const auto texture = image_loader::create_texture(path))
+									{
+										image_loader::m_header.emplace_back(
+											image_loader::frame_data{.frame_delay = 0, .res_view = texture});
+									}
 								}
 
-								image_loader::m_has_header_loaded = true;
+								image_loader::m_has_header_loaded = !image_loader::m_header.empty();
 								image_loader::texture_loading_in_progress = false;
 								g_header.m_text = BRAND;
 							});
@@ -84,14 +88,14 @@ namespace ui::submenus
 				{
 					submenu.add(option(
 						std::format("{} invalid extension format", dir_entry.path().filename().string()),
-						"Make sure file contains any of the following extensions: .png .jpeg .bmp .psd .tga .gif .hdr .pic .ppm .pgm"
+						"Make sure file contains any of the following extensions: .png .jpg .jpeg .bmp .psd .tga .gif .hdr .pic .ppm .pgm"
 					));
 				}
 			}
 		}
 		else
 		{
-			create_directory(header_path);
+			create_directories(header_path);
 			submenu.add(option(
 				"Headers folder has been successfully created",
 				"The headers folder was either not located or had not been generated; it has now been established, "

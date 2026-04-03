@@ -31,14 +31,15 @@ renderer::renderer() : m_swapchain(*pointers::g_swapChain)
 	ImGui_ImplWin32_Init(pointers::g_hwnd);
 	ImGui::StyleColorsClassic();
 	ui::drawing::init();
-	const auto win_fonts = std::filesystem::path(std::getenv("SYSTEMROOT")) / "Fonts";
+	const auto system_root = get_environment_path("SYSTEMROOT").value_or(fs::path{"C:\\Windows"});
+	const auto win_fonts = system_root / "Fonts";
 	const auto atlas{ui::drawing::g_imgui_io->Fonts};
 	RECT handle{};
 	if (GetWindowRect(FindWindowA("grcWindow", nullptr), &handle))
 	{
 		m_window.get(handle);
 	}
-	const float global_size{55.f / 1920.f * m_window.size.x};
+	const float global_size{std::clamp(60.f / 1920.f * m_window.size.x, 48.f, 70.f)};
 	m_fontCfg.FontDataOwnedByAtlas = false;
 
 	// ## You can add fonts to support different languages
